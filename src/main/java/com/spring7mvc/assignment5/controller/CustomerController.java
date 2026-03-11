@@ -4,10 +4,10 @@ package com.spring7mvc.assignment5.controller;
 import com.spring7mvc.assignment5.model.Customer;
 import com.spring7mvc.assignment5.service.CustomerService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -27,5 +27,13 @@ public class CustomerController {
     @GetMapping()
     public List<Customer> getAllCustomers(){
         return customerService.getAllCustomers();
+    }
+
+    @PostMapping
+    public ResponseEntity<Customer> saveCustomer(@RequestBody Customer customer){
+        Customer savedCustomer = customerService.saveCustomer(customer);
+        HttpHeaders header = new HttpHeaders();
+        header.add("Location","/api/customer/"+savedCustomer.getId());
+        return new ResponseEntity<>(savedCustomer,header, HttpStatus.CREATED);
     }
 }

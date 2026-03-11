@@ -29,8 +29,8 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer3 = Customer.builder()
                 .id(UUID.randomUUID())
                 .customerName("Bob Johnson")
-                .createdDate(LocalDate.of(2023, 5, 10))
-                .lastModifiedDate(LocalDate.of(2024, 3, 8))
+                .createdDate(LocalDate.now())
+                .lastModifiedDate(LocalDate.now())
                 .build();
         customerList.put(customer1.getId(), customer1);
         customerList.put(customer2.getId(), customer2);
@@ -45,5 +45,14 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public Customer getCustomerByID(UUID id) {
         return customerList.get(id);
+    }
+
+    public Customer saveCustomer(Customer customer){
+        //manually setting the credentials....
+        customer.setId(UUID.randomUUID());
+        customer.setCreatedDate(LocalDate.now());
+        customer.setLastModifiedDate(LocalDate.now());
+        customerList.put(customer.getId(),customer);
+        return customer;
     }
 }
