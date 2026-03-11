@@ -17,6 +17,7 @@ public class CustomerServiceImpl implements CustomerService {
                 .customerName("John Doe")
                 .createdDate(LocalDate.now())
                 .lastModifiedDate(LocalDate.now())
+                .customerAddress("Kottar")
                 .build();
 
         Customer customer2 = Customer.builder()
@@ -24,6 +25,7 @@ public class CustomerServiceImpl implements CustomerService {
                 .customerName("Jane Smith")
                 .createdDate(LocalDate.of(2024, 1, 15))
                 .lastModifiedDate(LocalDate.of(2024, 6, 20))
+                .customerAddress("Nagercoil")
                 .build();
 
         Customer customer3 = Customer.builder()
@@ -31,6 +33,7 @@ public class CustomerServiceImpl implements CustomerService {
                 .customerName("Bob Johnson")
                 .createdDate(LocalDate.now())
                 .lastModifiedDate(LocalDate.now())
+                .customerAddress("Madras")
                 .build();
         customerList.put(customer1.getId(), customer1);
         customerList.put(customer2.getId(), customer2);
@@ -61,11 +64,23 @@ public class CustomerServiceImpl implements CustomerService {
     public void updateCustomerByID(UUID id, Customer customer){
        Customer existingCustomer =  customerList.get(id);
        existingCustomer.setCustomerName(customer.getCustomerName());
+       existingCustomer.setCustomerAddress(customer.getCustomerAddress());
        existingCustomer.setLastModifiedDate(LocalDate.now());
        customerList.put(existingCustomer.getId(),existingCustomer);
     }
     @Override
     public void deleteCustomerByID(UUID id){
         customerList.remove(id);
+    }
+
+    @Override
+    public void patchCustomerByID(UUID id, Customer customer){
+        Customer existingCustomer = customerList.get(id);
+        if(customer.getCustomerName() != null){
+            existingCustomer.setCustomerName(customer.getCustomerName());
+        }
+        if(customer.getCustomerAddress() != null){
+            existingCustomer.setCustomerAddress(customer.getCustomerAddress());
+        }
     }
 }
