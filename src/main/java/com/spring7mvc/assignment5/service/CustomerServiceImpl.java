@@ -47,6 +47,7 @@ public class CustomerServiceImpl implements CustomerService {
         return customerList.get(id);
     }
 
+    @Override
     public Customer saveCustomer(Customer customer){
         //manually setting the credentials....
         customer.setId(UUID.randomUUID());
@@ -54,5 +55,13 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setLastModifiedDate(LocalDate.now());
         customerList.put(customer.getId(),customer);
         return customer;
+    }
+
+    @Override
+    public void updateCustomerByID(UUID id, Customer customer){
+       Customer existingCustomer =  customerList.get(id);
+       existingCustomer.setCustomerName(customer.getCustomerName());
+       existingCustomer.setLastModifiedDate(LocalDate.now());
+       customerList.put(existingCustomer.getId(),existingCustomer);
     }
 }
