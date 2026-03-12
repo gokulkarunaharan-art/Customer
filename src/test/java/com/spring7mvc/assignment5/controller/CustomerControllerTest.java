@@ -4,16 +4,22 @@ import com.spring7mvc.assignment5.model.Customer;
 import com.spring7mvc.assignment5.service.CustomerService;
 import com.spring7mvc.assignment5.service.CustomerServiceImpl;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.util.UUID;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.BDDMockito.given;
@@ -25,6 +31,9 @@ class CustomerControllerTest {
 
     @Autowired
     MockMvc mockMvc;
+
+    @Autowired
+    ObjectMapper objectMapper;
 
 
     CustomerServiceImpl customerServiceImpl = new CustomerServiceImpl();
@@ -55,5 +64,58 @@ class CustomerControllerTest {
                 ).andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.length()",is(3)));
+    }
+
+    @Test
+    public void saveCustomer() throws Exception {
+        Customer testCustomer = customerServiceImpl.getAllCustomers().getFirst();
+        String json = objectMapper.writeValueAsString(testCustomer);
+        testCustomer.setId(null);
+        testCustomer.setCreatedDate(null);
+        testCustomer.setLastModifiedDate(null);
+
+        given(customerService.saveCustomer(any(Customer.class))).willReturn(customerServiceImpl.getAllCustomers().get(1));
+        mockMvc.perform(
+                post("/api/customer")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(json)
+        )
+                .andExpect(
+                status().isCreated()
+                )
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(header().exists("Location"));
+
+    }
+
+    @Test
+    public void updateCustomerByID() throws Exception {
+        Customer testCustomer = customerServiceImpl.getAllCustomers().getFirst();
+
+        String json = objectMapper.writeValueAsString(testCustomer);
+
+        mockMvc.perform(
+                put("/api/customer/"+testCustomer.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json)
+        )
+                .andExpect(status().isNoContent());
+        verify(customerService).updateCustomerByID(any(UUID.class),any(Customer.class));
+
+    }
+    @Test
+    public void deleteCustomerByID() throws Exception {
+        Customer testCustomer = customerServiceImpl.getAllCustomers().getFirst();
+
+        mockMvc.perform(
+                        delete("/api/customer/"+testCustomer.getId())
+
+                )
+                .andExpect(status().isNoContent());
+        ArgumentCaptor<UUID> argumentCaptor = ArgumentCaptor.forClass(UUID.class);
+        verify(customerService).deleteCustomerByID(argumentCaptor.capture());
+        assertThat(testCustomer.getId()).isEqualTo(argumentCaptor.getValue());
     }
 }
