@@ -9,6 +9,9 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.List;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -40,4 +43,17 @@ class CustomerControllerTest {
                 .andExpect(jsonPath("$.id",is(testCustomer.getId().toString())));
     }
 
+    @Test
+    public void getAllCustomers() throws Exception {
+
+        List<Customer> customers = customerServiceImpl.getAllCustomers();
+
+        given(customerService.getAllCustomers()).willReturn(customers);
+        mockMvc.perform(
+                        get("/api/customer")
+                                .accept(MediaType.APPLICATION_JSON)
+                ).andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.length()",is(3)));
+    }
 }
