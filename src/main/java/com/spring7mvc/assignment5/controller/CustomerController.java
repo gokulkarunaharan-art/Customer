@@ -1,6 +1,7 @@
 package com.spring7mvc.assignment5.controller;
 
 
+import com.spring7mvc.assignment5.exception.CustomerNotFoundException;
 import com.spring7mvc.assignment5.model.Customer;
 import com.spring7mvc.assignment5.service.CustomerService;
 import lombok.RequiredArgsConstructor;
@@ -14,42 +15,44 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/customer")
 public class CustomerController {
+
+    public static final String CUSTOMER_PATH = "/api/customer";
+    public static final String CUSTOMER_PATH_ID = CUSTOMER_PATH+"/{customerID}";
 
     private final CustomerService customerService;
 
-    @GetMapping("/{UUID}")
-    public Customer getCustomerById(@PathVariable("UUID") UUID id){
-        return customerService.getCustomerByID(id);
+    @GetMapping(CUSTOMER_PATH_ID)
+    public Customer getCustomerById(@PathVariable("customerID") UUID id){
+        return customerService.getCustomerByID(id).orElseThrow(CustomerNotFoundException::new);
     }
 
-    @GetMapping()
+    @GetMapping(CUSTOMER_PATH)
     public List<Customer> getAllCustomers(){
         return customerService.getAllCustomers();
     }
 
-    @PostMapping
+    @PostMapping(CUSTOMER_PATH)
     public ResponseEntity<Customer> saveCustomer(@RequestBody Customer customer){
         Customer savedCustomer = customerService.saveCustomer(customer);
         HttpHeaders header = new HttpHeaders();
         header.add("Location","/api/customer/"+savedCustomer.getId());
         return new ResponseEntity<>(savedCustomer,header, HttpStatus.CREATED);
     }
-    @PutMapping("/{UUID}")
-    public ResponseEntity updateCustomerByID(@PathVariable("UUID") UUID id, @RequestBody Customer customer){
+    @PutMapping(CUSTOMER_PATH_ID)
+    public ResponseEntity updateCustomerByID(@PathVariable("customerID") UUID id, @RequestBody Customer customer){
         customerService.updateCustomerByID(id, customer);
         return new ResponseEntity(HttpStatus.NO_CONTENT);
     }
 
-    @DeleteMapping("/{UUID}")
-    public ResponseEntity deleteCustomerByID(@PathVariable("UUID") UUID id){
+    @DeleteMapping(CUSTOMER_PATH_ID)
+    public ResponseEntity deleteCustomerByID(@PathVariable("customerID") UUID id){
         customerService.deleteCustomerByID(id);
         return new ResponseEntity(HttpStatus.NO_CONTENT);
     }
 
-    @PatchMapping("/{UUID}")
-    public ResponseEntity patchCustomerByID(@PathVariable("UUID") UUID id, @RequestBody Customer customer){
+    @PatchMapping(CUSTOMER_PATH_ID)
+    public ResponseEntity patchCustomerByID(@PathVariable("customerID") UUID id, @RequestBody Customer customer){
         customerService.patchCustomerByID(id, customer);
         return new ResponseEntity(HttpStatus.NO_CONTENT);
     }

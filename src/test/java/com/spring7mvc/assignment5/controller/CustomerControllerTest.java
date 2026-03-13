@@ -1,4 +1,5 @@
 package com.spring7mvc.assignment5.controller;
+import com.spring7mvc.assignment5.exception.CustomerNotFoundException;
 import com.spring7mvc.assignment5.model.Customer;
 import com.spring7mvc.assignment5.service.CustomerService;
 import com.spring7mvc.assignment5.service.CustomerServiceImpl;
@@ -11,10 +12,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+
+import java.util.*;
+
+import static com.spring7mvc.assignment5.controller.CustomerController.CUSTOMER_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -48,9 +49,9 @@ class CustomerControllerTest {
 
         Customer testCustomer = customerServiceImpl.getAllCustomers().getFirst();
 
-        given(customerService.getCustomerByID(testCustomer.getId())).willReturn(testCustomer);
+        given(customerService.getCustomerByID(testCustomer.getId())).willReturn(Optional.of(testCustomer));
         mockMvc.perform(
-                get("/api/customer/"+testCustomer.getId())
+                get(CUSTOMER_PATH+"/"+testCustomer.getId())
                         .accept(MediaType.APPLICATION_JSON)
         ).andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -64,7 +65,7 @@ class CustomerControllerTest {
 
         given(customerService.getAllCustomers()).willReturn(customers);
         mockMvc.perform(
-                        get("/api/customer")
+                        get(CUSTOMER_PATH)
                                 .accept(MediaType.APPLICATION_JSON)
                 ).andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -82,7 +83,7 @@ class CustomerControllerTest {
         given(customerService.saveCustomer(any(Customer.class)))
                 .willReturn(customerServiceImpl.getAllCustomers().get(1));
         mockMvc.perform(
-                post("/api/customer")
+                post(CUSTOMER_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .content(json)
@@ -102,7 +103,7 @@ class CustomerControllerTest {
         String json = objectMapper.writeValueAsString(testCustomer);
 
         mockMvc.perform(
-                put("/api/customer/"+testCustomer.getId())
+                put(CUSTOMER_PATH+"/"+testCustomer.getId())
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json)
@@ -117,7 +118,7 @@ class CustomerControllerTest {
         Customer testCustomer = customerServiceImpl.getAllCustomers().getFirst();
 
         mockMvc.perform(
-                        delete("/api/customer/" + testCustomer.getId())
+                        delete(CUSTOMER_PATH+"/" + testCustomer.getId())
 
                 )
                 .andExpect(status().isNoContent());
@@ -134,7 +135,7 @@ class CustomerControllerTest {
         json.put("customerName", testCustomer.getCustomerName());
 
         mockMvc.perform(
-                patch("/api/customer/" + testCustomer.getId())
+                patch(CUSTOMER_PATH+"/" + testCustomer.getId())
                         .content(objectMapper.writeValueAsString(json))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
@@ -143,5 +144,17 @@ class CustomerControllerTest {
         verify(customerService).patchCustomerByID(uuidCaptor.capture(), customerCaptor.capture());
         assertThat(testCustomer.getId()).isEqualTo(uuidCaptor.getValue());
         assertThat(testCustomer.getCustomerName()).isEqualTo(customerCaptor.getValue().getCustomerName());
+    }
+
+    @Test
+    public void customerNotFoundExceptionTest() throws Exception {
+
+        given(customerService.getCustomerByID(any(UUID.class))).willReturn(Optional.empty());
+        mockMvc.perform(
+                get(CUSTOMER_PATH + "/" + UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+        )
+                .andExpect(status().isNotFound());
     }
 }
